@@ -25,6 +25,7 @@
 // To force Orbitersdk.h to use <fstream> in any compiler version
 #pragma include_alias( <fstream.h>, <fstream> )
 #include "Orbitersdk.h"
+#include "OrbiterAPI.h"
 #include "stdio.h"
 #include "math.h"
 
@@ -42,6 +43,14 @@
 #include "Mission.h"
 #include <thread>
 #include <mutex>
+
+const VECTOR3 opticsOrigin = _V(-0.006197, -1.26019, 0.399218) + _V(0, 0, 2.1); //TODO: THIS IS NOT CORRECT, I'll need to update later
+// CSM Optics base direction, as given in the Colossus code CSM_GEOMETRY.agc
+// All flown Colossus versions use these values
+const float OPTICS_BASE_COS = 0.8431756920;
+const float OPTICS_BASE_SIN = 0.5376381241;
+const VECTOR3 OPTICS_ZERO_F = _V(0, -OPTICS_BASE_SIN, OPTICS_BASE_COS); // This is the zero position for the optics - Forward vector
+const VECTOR3 OPTICS_ZERO_U = _V(0, OPTICS_BASE_COS, OPTICS_BASE_SIN); // This is the zero position for the optics - Up vector
 
 CSMcomputer::CSMcomputer(SoundLib &s, DSKY &display, DSKY &display2, IMU &im, CDU &sc, CDU &tc, PanelSDK &p) :
 	ApolloGuidance(s, display, im, sc, tc, p), dsky2(display2)
@@ -572,6 +581,8 @@ CMOptics::CMOptics() {
 void CMOptics::Init(Saturn *vessel) {
 
 	sat = vessel;
+	sxtLLOSTex = oapiCreateSurfaceEx(1024, 1024, OAPISURFACE_RENDER3D | OAPISURFACE_RENDERTARGET | OAPISURFACE_TEXTURE | OAPISURFACE_SKETCHPAD);
+	sxtLLOSCam = gcSetupCustomCamera(NULL, vessel, _V(opticsOrigin.x, opticsOrigin.y, opticsOrigin.z), OPTICS_ZERO_F, OPTICS_ZERO_U, 1.8, sxtLLOSTex);
 }
 
 void CMOptics::SystemTimestep(double simdt) {

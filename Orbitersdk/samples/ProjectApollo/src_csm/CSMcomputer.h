@@ -26,6 +26,7 @@
 #define _PA_CSMCOMPUTER_H
 
 #include "thread.h"
+#include "gcAPI.h"
 
 class PanelSwitchItem;
 
@@ -163,6 +164,7 @@ class Saturn;
 
 // *** CM OPTICS ***
 // I guess this can go here; it doesn't really warrant its own file, and it's part of GNC, so...
+// TODO: I should probably move this to a separate file if it's going to be controlling cameras and stuff now - lassombra
 
 ///
 /// \ingroup AGC
@@ -204,6 +206,10 @@ public:
 protected:
 	bool PaintDisplay(SURFHANDLE surf, SURFHANDLE digits, int value, int xTexMul = 1);
 	void TelescopeServoDrive(double dt, double sxt_angle, double &sct_angle, double &sct_rate);
+	CAMERAHANDLE sxtLLOSCam;
+	CAMERAHANDLE sxtSLOSCam;
+	CAMERAHANDLE sctCam;
+	SURFHANDLE sxtLLOSTex;
 };
 
 
