@@ -5104,7 +5104,7 @@ void Saturn::UpdateMassAndCoG()
 		//lights
 		SpotLight->UpdatePosition(CoGShift);
 		RndzLight->UpdatePosition(CoGShift);
-		optics->UpdatePosition(CoGShift);
+		optics.UpdatePosition(CoGShift);
 
 		// All done!
 		LastFuelWeight = CurrentFuelWeight;
