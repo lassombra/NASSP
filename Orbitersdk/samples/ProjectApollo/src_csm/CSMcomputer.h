@@ -26,7 +26,9 @@
 #define _PA_CSMCOMPUTER_H
 
 #include "thread.h"
-#include "gcAPI.h"
+#include "Orbitersdk.h"
+#include "gcCoreAPI.h"
+
 
 class PanelSwitchItem;
 
@@ -201,15 +203,12 @@ public:
 	double dTrunion;
 	bool SextDualView;												// Toggle logical for sextant dual-view
 	bool SextDVLOSTog;												// Alternating flag that controls LineOfSight cycling in Dual-View mode
-	double SextDVTimer;												// Governing timer to prevent view switching at greater than 15 frames per sim second
 	bool OpticsCovered;												// Are optics covers in place?
+	SURFHANDLE sxtLLOSTex;											// Sextant Line of Sight texture
 protected:
+	CAMERAHANDLE sxtLLOSCam;
 	bool PaintDisplay(SURFHANDLE surf, SURFHANDLE digits, int value, int xTexMul = 1);
 	void TelescopeServoDrive(double dt, double sxt_angle, double &sct_angle, double &sct_rate);
-	CAMERAHANDLE sxtLLOSCam;
-	CAMERAHANDLE sxtSLOSCam;
-	CAMERAHANDLE sctCam;
-	SURFHANDLE sxtLLOSTex;
 };
 
 

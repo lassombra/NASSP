@@ -1088,6 +1088,7 @@ public:
 	void GetRCSStatus(int index, RCSStatus &rs);
 	double GetAccelG() { return mechanicalAccelerometer.GetXAccel() / G; };
 	virtual void GetECSStatus(ECSStatus &ecs);
+	virtual SURFHANDLE GetOpticsHandle();
 	virtual void SetCrewNumber(int number);
 	virtual void SetPrimECSTestHeaterPowerW(double power);
 	virtual void SetSecECSTestHeaterPowerW(double power);

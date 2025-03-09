@@ -24,11 +24,9 @@
 
 // To force Orbitersdk.h to use <fstream> in any compiler version
 #pragma include_alias( <fstream.h>, <fstream> )
-#include "Orbitersdk.h"
-#include "OrbiterAPI.h"
 #include "stdio.h"
 #include "math.h"
-
+#include "Orbitersdk.h"
 #include "soundlib.h"
 #include "nasspsound.h"
 #include "nasspdefs.h"
@@ -44,13 +42,15 @@
 #include <thread>
 #include <mutex>
 
-const VECTOR3 opticsOrigin = _V(-0.006197, -1.26019, 0.399218) + _V(0, 0, 2.1); //TODO: THIS IS NOT CORRECT, I'll need to update later
+const VECTOR3 opticsOrigin = _V(-0.006197, -1.26019, 34.399218) + _V(0, 0, 2.1); //TODO: THIS IS NOT CORRECT, I'll need to update later
 // CSM Optics base direction, as given in the Colossus code CSM_GEOMETRY.agc
+// These values are the sin and cosin of the angle between CMS +X and navigation +X.  As it turns out they're in a transformation matrix used to
+// convert from navigation base coordinates to CSM base coordinates.
 // All flown Colossus versions use these values
-const float OPTICS_BASE_COS = 0.8431756920;
-const float OPTICS_BASE_SIN = 0.5376381241;
-const VECTOR3 OPTICS_ZERO_F = _V(0, -OPTICS_BASE_SIN, OPTICS_BASE_COS); // This is the zero position for the optics - Forward vector
-const VECTOR3 OPTICS_ZERO_U = _V(0, OPTICS_BASE_COS, OPTICS_BASE_SIN); // This is the zero position for the optics - Up vector
+const float OPTICS_BASE_SIN = 0.8431756920;
+const float OPTICS_BASE_COS = 0.5376381241;
+const VECTOR3 OPTICS_ZERO_F = _V(0, -OPTICS_BASE_COS, OPTICS_BASE_SIN); // This is the zero position for the optics - Forward vector in orbiter terms.
+const VECTOR3 OPTICS_ZERO_U = _V(0, OPTICS_BASE_SIN, OPTICS_BASE_COS); // This is the zero position for the optics - Up vector - UP vector is 90 degrees clockwise around +x in orbiter terms
 
 CSMcomputer::CSMcomputer(SoundLib &s, DSKY &display, DSKY &display2, IMU &im, CDU &sc, CDU &tc, PanelSDK &p) :
 	ApolloGuidance(s, display, im, sc, tc, p), dsky2(display2)
@@ -574,15 +574,24 @@ CMOptics::CMOptics() {
 	Powered = 0;
 	SextDualView = false;
 	SextDVLOSTog = false;
-	SextDVTimer = 0.0;
 	OpticsCovered = true;
 }
 
 void CMOptics::Init(Saturn *vessel) {
 
 	sat = vessel;
-	sxtLLOSTex = oapiCreateSurfaceEx(1024, 1024, OAPISURFACE_RENDER3D | OAPISURFACE_RENDERTARGET | OAPISURFACE_TEXTURE | OAPISURFACE_SKETCHPAD);
-	sxtLLOSCam = gcSetupCustomCamera(NULL, vessel, _V(opticsOrigin.x, opticsOrigin.y, opticsOrigin.z), OPTICS_ZERO_F, OPTICS_ZERO_U, 1.8, sxtLLOSTex);
+	sxtLLOSTex = oapiCreateSurfaceEx(1920, 1920, OAPISURFACE_RENDER3D | OAPISURFACE_RENDERTARGET | OAPISURFACE_TEXTURE | OAPISURFACE_SKETCHPAD);
+	VECTOR3 forward = OPTICS_ZERO_F;
+	VECTOR3 up = OPTICS_ZERO_U;
+	gcCore2* graphics = gcGetCoreInterface();
+	if (NULL != graphics) {
+		// For the moment the sxtLLOS cam is actually getting a 50.0 fov as that is roughly what the telescope had.  However, it should have a field of view of 1.8 degrees.
+		// I'll be moving it over to that once I've proven I'm pointing in the right direction.
+		sxtLLOSCam = graphics->SetupCustomCamera(NULL, vessel->GetHandle(), _V(opticsOrigin.x, opticsOrigin.y, opticsOrigin.z), forward, up, 1.0472, sxtLLOSTex);
+	}
+	if (NULL != sxtLLOSCam) {
+		graphics->CustomCameraOnOff(sxtLLOSCam, true);
+	}
 }
 
 void CMOptics::SystemTimestep(double simdt) {
@@ -690,12 +699,7 @@ void CMOptics::TimeStep(double simdt) {
 
 	double ShaftRate = 0;
 	double TrunRate = 0;
-
-	SextDVTimer = SextDVTimer+simdt;
-	if (SextDVTimer >= 0.06666){
-		SextDVTimer = 0.0;
-		SextDVLOSTog=!SextDVLOSTog;
-	}
+	SextDVLOSTog=!SextDVLOSTog;
 
 	// Optics cover handling
 	if (OpticsCovered && sat->GetStage() >= STAGE_ORBIT_SIVB) {

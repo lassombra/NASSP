@@ -3622,6 +3622,15 @@ void Saturn::GetECSWaterStatus(ECSWaterStatus &ws)
 	}
 }
 
+
+/// <summary>
+/// Get the optics surface handle.
+/// </summary>
+/// <returns></returns>
+SURFHANDLE Saturn::GetOpticsHandle() {
+	return optics.sxtLLOSTex;
+}
+
 //
 // ECS state for the ProjectApolloMFD.
 //
